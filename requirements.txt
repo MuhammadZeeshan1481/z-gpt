@@ -1,0 +1,31 @@
+# Core backend
+fastapi
+uvicorn
+python-multipart
+
+# Hugging Face
+transformers
+torch
+accelerate
+peft
+sentencepiece
+huggingface-hub
+
+# Memory / Embedding
+langchain
+chromadb
+faiss-cpu
+
+# Image generation
+diffusers
+safetensors
+Pillow
+
+# Translation
+argostranslate
+langdetect
+
+# Optional dev tools
+streamlit
+notebook
+python-dotenv
