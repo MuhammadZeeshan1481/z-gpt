@@ -1,0 +1,49 @@
+MIT License
+
+Copyright (c) 2024 Muhammad Zeeshan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-Party Licenses
+
+This project uses several third-party libraries and models. Below are their respective licenses:
+
+### Backend Dependencies
+- FastAPI: MIT License
+- Uvicorn: BSD-3-Clause License
+- Transformers (Hugging Face): Apache License 2.0
+- PyTorch: BSD-style License
+- Diffusers: Apache License 2.0
+- Argos Translate: MIT License
+- Pydantic: MIT License
+
+### Frontend Dependencies
+- React: MIT License
+- React Router: MIT License
+- Axios: MIT License
+- Bootstrap: MIT License
+
+### AI Models
+- Mistral-7B-Instruct: Apache License 2.0
+- Stable Diffusion v1.5: CreativeML Open RAIL-M License
+- XLM-RoBERTa: MIT License
+
+Please refer to the respective projects for their full license texts.
