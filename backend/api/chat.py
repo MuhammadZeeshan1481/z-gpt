@@ -1,22 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import List
+from backend.models import ChatRequest, ChatResponse
 from backend.core.llm_handler import generate_reply
 from backend.utils.language_tools import detect_language, translate_text
 
 router = APIRouter()
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-class ChatRequest(BaseModel):
-    message: str
-    history: List[Message] = []
-
-class ChatResponse(BaseModel):
-    response: str
-    detected_lang: str
 
 @router.post("/", response_model=ChatResponse)
 def chat(request: ChatRequest):

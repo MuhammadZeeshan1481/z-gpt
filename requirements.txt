@@ -25,7 +25,5 @@ Pillow
 argostranslate
 langdetect
 
-# Optional dev tools
-streamlit
-notebook
+# Configuration
 python-dotenv

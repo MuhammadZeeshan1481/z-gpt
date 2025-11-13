@@ -1,15 +1,14 @@
-import axios from "axios";
+import { api } from "./client";
 
-const BASE_URL = "http://localhost:8000";
-
+/**
+ * Send a chat message
+ * @param {string} message - User message
+ * @param {Array} history - Conversation history
+ * @returns {Promise} Response data
+ */
 export const sendMessage = async (message, history = []) => {
   try {
-    const response = await axios.post(`${BASE_URL}/chat/`, {
-      message,
-      history,
-    });
-    console.log(" Backend Response:", response.data);
-    return response.data;
+    return await api.sendChatMessage(message, history);
   } catch (err) {
     console.error("Chat API error:", err);
     throw err;
