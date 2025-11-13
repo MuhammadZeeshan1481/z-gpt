@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel, Field, validator
 from diffusers import StableDiffusionPipeline
 from backend.config.settings import HUGGINGFACEHUB_API_TOKEN, MAX_PROMPT_LENGTH
+from backend.middleware.dependencies import verify_and_rate_limit
 import torch
 import base64
 from io import BytesIO
@@ -44,7 +45,11 @@ class ImageResponse(BaseModel):
     processing_time: float = Field(..., description="Processing time in seconds")
 
 @router.post("/generate", response_model=ImageResponse, status_code=status.HTTP_200_OK)
-async def generate_image(req: ImageRequest):
+async def generate_image(
+    req: ImageRequest,
+    request: Request,
+    api_key_info: dict = Depends(verify_and_rate_limit)
+):
     """
     Generate an image from a text prompt using Stable Diffusion.
     
@@ -56,7 +61,7 @@ async def generate_image(req: ImageRequest):
     start_time = time.time()
     
     try:
-        logger.info(f"Generating image for prompt: {req.prompt[:50]}...")
+        logger.info(f"Generating image for prompt: {req.prompt[:50]}... (tier: {api_key_info.get('tier', 'unknown')})")
         
         pipe = get_pipe()
         result = pipe(req.prompt, guidance_scale=8.5, num_inference_steps=50)

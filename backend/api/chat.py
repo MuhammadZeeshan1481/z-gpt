@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from backend.core.llm_handler import generate_reply
 from backend.utils.language_tools import detect_language, translate_text
 from backend.config.settings import MAX_MESSAGE_LENGTH, MAX_HISTORY_LENGTH
+from backend.middleware.dependencies import verify_and_rate_limit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,11 @@ class ChatResponse(BaseModel):
     processing_time: Optional[float] = Field(None, description="Processing time in seconds")
 
 @router.post("/", response_model=ChatResponse, status_code=status.HTTP_200_OK)
-async def chat(request: ChatRequest):
+async def chat(
+    chat_request: ChatRequest,
+    request: Request,
+    api_key_info: dict = Depends(verify_and_rate_limit)
+):
     """
     Chat endpoint that processes user messages with language detection and translation.
     
@@ -62,22 +67,22 @@ async def chat(request: ChatRequest):
     start_time = time.time()
     
     try:
-        logger.info(f"Processing chat message: {request.message[:50]}...")
+        logger.info(f"Processing chat message: {chat_request.message[:50]}... (tier: {api_key_info.get('tier', 'unknown')})")
         
         # Detect language
-        detected_lang = detect_language(request.message)
+        detected_lang = detect_language(chat_request.message)
         logger.debug(f"Detected language: {detected_lang}")
         
         # Translate to English if needed
         input_text = (
-            translate_text(request.message, from_lang=detected_lang, to_lang="en")
+            translate_text(chat_request.message, from_lang=detected_lang, to_lang="en")
             if detected_lang != "en"
-            else request.message
+            else chat_request.message
         )
         logger.debug(f"Translated input: {input_text[:50]}...")
 
         # Generate reply
-        reply_en = generate_reply(input_text, request.history or [])
+        reply_en = generate_reply(input_text, chat_request.history or [])
         logger.debug(f"Generated reply: {reply_en[:50]}...")
         
         # Translate back to detected language if needed

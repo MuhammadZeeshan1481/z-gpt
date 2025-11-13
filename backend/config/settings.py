@@ -8,6 +8,7 @@ load_dotenv()
 HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-in-production")
 API_KEY = os.getenv("API_KEY", "")
+REQUIRE_API_KEY = os.getenv("REQUIRE_API_KEY", "False").lower() == "true"
 
 # Model Configuration
 MODEL_NAME = os.getenv("MODEL_NAME", "mistralai/Mistral-7B-Instruct-v0.1")

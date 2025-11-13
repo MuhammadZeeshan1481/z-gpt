@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel, Field, validator
 import argostranslate.package
 import argostranslate.translate
 from backend.config.settings import MAX_MESSAGE_LENGTH
+from backend.middleware.dependencies import verify_and_rate_limit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,11 @@ def translate_text_internal(text: str, from_code: str, to_code: str) -> str:
     return translation.translate(text)
 
 @router.post("/", response_model=TranslationResponse, status_code=status.HTTP_200_OK)
-async def handle_translation(request: TranslationRequest):
+async def handle_translation(
+    translation_request: TranslationRequest,
+    request: Request,
+    api_key_info: dict = Depends(verify_and_rate_limit)
+):
     """
     Translate text between languages.
     
@@ -61,17 +66,17 @@ async def handle_translation(request: TranslationRequest):
     start_time = time.time()
     
     try:
-        logger.info(f"Translating text from {request.from_lang} to {request.to_lang}")
+        logger.info(f"Translating text from {translation_request.from_lang} to {translation_request.to_lang} (tier: {api_key_info.get('tier', 'unknown')})")
         
-        translated = translate_text_internal(request.text, request.from_lang, request.to_lang)
+        translated = translate_text_internal(translation_request.text, translation_request.from_lang, translation_request.to_lang)
         
         processing_time = time.time() - start_time
         logger.info(f"Translation completed in {processing_time:.2f}s")
         
         return TranslationResponse(
             translated_text=translated,
-            from_lang=request.from_lang,
-            to_lang=request.to_lang,
+            from_lang=translation_request.from_lang,
+            to_lang=translation_request.to_lang,
             processing_time=processing_time
         )
     except ValueError as e:
@@ -89,20 +94,24 @@ async def handle_translation(request: TranslationRequest):
 
 # Legacy endpoint for backward compatibility
 @router.post("/translate", response_model=TranslationResponse, status_code=status.HTTP_200_OK)
-async def handle_translation_legacy(request: dict):
+async def handle_translation_legacy(
+    req_data: dict,
+    request: Request,
+    api_key_info: dict = Depends(verify_and_rate_limit)
+):
     """Legacy translation endpoint for backward compatibility"""
     try:
-        text = request.get("text", "")
-        from_lang = request.get("from", "en")
-        to_lang = request.get("to", "ur")
+        text = req_data.get("text", "")
+        from_lang = req_data.get("from", "en")
+        to_lang = req_data.get("to", "ur")
         
-        translation_request = TranslationRequest(
+        translation_req = TranslationRequest(
             text=text,
             from_lang=from_lang,
             to_lang=to_lang
         )
         
-        return await handle_translation(translation_request)
+        return await handle_translation(translation_req, request, api_key_info)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
