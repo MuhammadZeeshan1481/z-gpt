@@ -45,6 +45,9 @@ async def verify_and_rate_limit(
             "tier": "free"
         }
     
+    # Store API key info in request state for metrics
+    request.state.api_key_info = key_info
+    
     # Apply rate limiting
     await rate_limit_middleware(request, key_info)
     

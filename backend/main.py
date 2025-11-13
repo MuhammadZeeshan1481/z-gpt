@@ -6,6 +6,7 @@ from backend.api import chat, image, translate
 from backend.config.settings import ALLOWED_ORIGINS, DEBUG, REQUIRE_API_KEY
 from backend.middleware.auth import verify_api_key, api_key_header, list_api_keys
 from backend.middleware.rate_limit import rate_limit_middleware, get_rate_limit_stats
+from backend.middleware.metrics import record_request, get_endpoint_stats, get_metrics_summary, get_recent_requests, get_slow_requests, get_error_requests
 import logging
 import time
 
@@ -33,7 +34,7 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-# Request timing and rate limiting middleware
+# Request timing, rate limiting, and metrics middleware
 @app.middleware("http")
 async def add_process_time_and_rate_limit_header(request: Request, call_next):
     start_time = time.time()
@@ -55,6 +56,19 @@ async def add_process_time_and_rate_limit_header(request: Request, call_next):
         response.headers["X-RateLimit-Limit"] = str(rate_info['limit'])
         response.headers["X-RateLimit-Remaining"] = str(rate_info['remaining'])
         response.headers["X-RateLimit-Reset"] = str(rate_info['reset_in_seconds'])
+    
+    # Record metrics
+    api_key = "anonymous"
+    if hasattr(request.state, 'api_key_info'):
+        api_key = request.state.api_key_info.get('api_key', 'anonymous')
+    
+    record_request(
+        endpoint=request.url.path,
+        method=request.method,
+        status_code=response.status_code,
+        process_time=process_time,
+        api_key=api_key
+    )
     
     logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.3f}s")
     return response
@@ -132,5 +146,26 @@ async def get_stats(api_key: str = Depends(api_key_header)):
     
     return {
         "rate_limit_stats": get_rate_limit_stats(),
+        "timestamp": time.time()
+    }
+
+@app.get("/admin/metrics", tags=["Admin"])
+async def get_metrics(api_key: str = Depends(api_key_header)):
+    """Get performance metrics (admin only)"""
+    key_info = await verify_api_key(api_key)
+    
+    # Only enterprise tier can view metrics
+    if key_info['tier'] != 'enterprise':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only enterprise tier can access this endpoint"
+        )
+    
+    return {
+        "summary": get_metrics_summary(),
+        "endpoint_stats": get_endpoint_stats(),
+        "recent_requests": get_recent_requests(limit=20),
+        "slow_requests": get_slow_requests(threshold_seconds=5.0, limit=10),
+        "error_requests": get_error_requests(limit=10),
         "timestamp": time.time()
     }
