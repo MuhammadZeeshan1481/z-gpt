@@ -1,0 +1,50 @@
+# Core backend
+fastapi
+uvicorn
+python-multipart
+
+# Hugging Face
+transformers
+torch
+accelerate
+peft
+sentencepiece
+huggingface-hub
+
+# Memory / Embedding
+langchain
+chromadb
+faiss-cpu
+
+# Image generation
+diffusers
+safetensors
+Pillow
+
+# Translation
+argostranslate
+langdetect
+
+# Persistence & security
+sqlmodel
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
+bcrypt==4.1.2
+alembic
+psycopg[binary]
+redis>=5.0
+prometheus-client
+prometheus-fastapi-instrumentator
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+
+# Optional dev tools
+streamlit
+notebook
+python-dotenv
+
+# Testing
+pytest
+pytest-cov
